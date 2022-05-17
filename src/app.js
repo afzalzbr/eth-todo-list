@@ -52,7 +52,6 @@ App = {
   loadAccount: async () => {
     App.account = await web3.eth.accounts[0];
     web3.eth.defaultAccount=web3.eth.accounts[0]
-    console.log(App.account)
   },
 
   loadContract: async () => {
@@ -83,9 +82,17 @@ App = {
   },
 
   createTask: async () => {
+    App.setLoading(true);
     const task = $("#newTask").val();
-    console.log(task)
     await App.todoList.createTask(task);
+    $("#newTask").val('');
+    window.location.reload();
+  },
+
+  toggleDone: async (e) => {
+    App.setLoading(true);
+    const taskId = e.target.name;
+    await App.todoList.toggleDone(taskId);
     window.location.reload();
   },
 
@@ -94,19 +101,18 @@ App = {
     const taskCount = await App.todoList.taskCount();
     const $taskTemplate = $(".taskTemplate");
 
-    for (let index = 1; index < taskCount; index++) {
+    for (let index = 1; index <= taskCount; index++) {
       const task = await App.todoList.tasks(index);
       const taskId = task[0].toNumber();
       const taskName = task[1];
       const taskDone = task[2];
-      //   console.log('Name: ' + task);
-      //   console.log('Name: ' + taskName);
       const $newTaskTemplate = $taskTemplate.clone();
       $newTaskTemplate.find(".content").html(taskName);
       $newTaskTemplate
         .find("input")
         .prop("name", taskId)
-        .prop("checked", taskDone);
+        .prop("checked", taskDone)
+        .on('click', App.toggleDone);
 
       if (taskDone) {
         $("#tasksDone").append($newTaskTemplate);
